@@ -1,4 +1,4 @@
-import { MessageHandler } from './types';
+import { MessageHandler } from '../types';
 
 type Unsubscribe = () => Promise<void>;
 

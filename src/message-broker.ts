@@ -1,11 +1,7 @@
-import { Broker } from './broker.interface';
+import { Broker } from './interfaces';
 import { MessageHandler } from './types';
 import { randomUUID } from 'node:crypto';
-
-export interface Subscription<TMessage> {
-    readonly id: string;
-    readonly handler: MessageHandler<TMessage>;
-}
+import { Subscription } from './interfaces';
 
 export class MessageBroker<TMessage> implements Broker<TMessage> {
     constructor(
