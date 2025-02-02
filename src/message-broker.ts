@@ -5,55 +5,33 @@ import { Subscription } from './interfaces';
 
 export class MessageBroker<TMessage> implements Broker<TMessage> {
     constructor(
-        private readonly publishers: Map<string, Subscription<TMessage>[]> = new Map(),
+        private readonly channels: Map<string, Subscription<TMessage>[]> = new Map(),
     ) {}
 
-    public async addPublisher(id: string) {
-        if (this.publishers.has(id)) {
-            throw new Error(`Publisher with ID ${id} already exists`);
-        }
+    public async subscribe(channel: string, handler: MessageHandler<TMessage>) {
+        const subscriptions = this.getSubscriptions(channel)
+        const subscriptionId = randomUUID();
 
-        this.publishers.set(id, []);
+        this.channels.set(channel, [...subscriptions, {id: subscriptionId, handler}]);
+
+        return () => this.unsubscribe(channel, subscriptionId);
     }
 
-    public async removePublisher(id: string) {
-        if (!this.publishers.has(id)) {
-            throw new Error(`Publisher with ID ${id} does not exist`);
-        }
-
-        this.publishers.delete(id);
-    }
-
-    public async publish(id: string, message: TMessage) {
-        const subscriptions = this.publishers.get(id);
-
-        if (subscriptions === undefined) {
-            throw new Error(`Publisher with ID ${id} does not exist`);
-        }
-
+    public async publish(channel: string, message: TMessage) {
+        const subscriptions = this.getSubscriptions(channel);
         await Promise.all(subscriptions.map((subscriber) => subscriber.handler(message)));
     }
 
-    public async subscribe(publisherId: string, handler: MessageHandler<TMessage>) {
-        const subscriptions = this.publishers.get(publisherId);
-
-        if (subscriptions === undefined) {
-            throw new Error(`Publisher with ID ${publisherId} does not exist`);
+    private getSubscriptions(channel: string) {
+        if (!this.channels.has(channel)) {
+            this.channels.set(channel, []);
         }
 
-        const subscriptionId = randomUUID();
-        this.publishers.set(publisherId, [...subscriptions, {id: subscriptionId, handler}]);
-
-        return () => this.unsubscribe(publisherId, subscriptionId);
+        return this.channels.get(channel)!;
     }
 
-    private async unsubscribe(publisherId: string, subscriptionId: string) {
-        const subscriptions = this.publishers.get(publisherId);
-
-        if (subscriptions === undefined) {
-            throw new Error(`Publisher with ID ${publisherId} does not exist`);
-        }
-
-        this.publishers.set(publisherId, subscriptions.filter((subscription) => subscription.id !== subscriptionId));
+    private async unsubscribe(channel: string, subscriptionId: string) {
+        const subscriptions = this.getSubscriptions(channel);
+        this.channels.set(channel, subscriptions.filter((subscription) => subscription.id !== subscriptionId));
     }
 }
