@@ -1,6 +1,4 @@
-import { MessageHandler } from '../types';
-
-type Unsubscribe = () => Promise<void>;
+import { MessageHandler, Unsubscribe } from '../types';
 
 export interface Broker<TMessage> {
     subscribe(publisherId: string, handler: MessageHandler<TMessage>): Promise<Unsubscribe>;
