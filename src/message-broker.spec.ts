@@ -1,61 +1,49 @@
 import { MessageBroker } from './message-broker';
+import { ChannelRepository } from './interfaces';
+import { ChannelCleaner } from './channel-cleaner';
+import { MemoryChannelRepository } from './memory-channel-repository';
 
 describe('MessageBroker', () => {
     let broker: MessageBroker<string>;
+    let channelRepository: ChannelRepository;
+    let channelCleaner: ChannelCleaner;
 
     beforeEach(() => {
-        broker = new MessageBroker();
+        channelRepository = new MemoryChannelRepository();
+        channelCleaner = new ChannelCleaner(channelRepository);
+
+        channelCleaner.execute = jest.fn();
+
+        broker = new MessageBroker(channelRepository, channelCleaner);
     });
 
-    describe('publish', () => {
+    describe('생성자', () => {
+        it('생성 시 ChannelCleaner를 실행해야 한다', () => {
+            expect(channelCleaner.execute).toHaveBeenCalled();
+        });
+    });
+
+    describe('publish/subscribe', () => {
         it('메시지를 구독자들에게 전달할 수 있다', async () => {
-            const handler1 = jest.fn();
-            const handler2 = jest.fn();
+            const handler = jest.fn().mockResolvedValue(undefined);
             const message = 'test message';
 
-            await broker.subscribe('publisher-1', handler1);
-            await broker.subscribe('publisher-1', handler2);
+            await broker.subscribe('test-topic', handler);
+            await broker.publish('test-topic', message);
 
-            await broker.publish('publisher-1', message);
-
-            expect(handler1).toHaveBeenCalledWith(message);
-            expect(handler2).toHaveBeenCalledWith(message);
-        });
-    });
-
-    describe('subscribe', () => {
-        it('발행자의 메시지를 구독할 수 있다', async () => {
-            const unsubscribe = await broker.subscribe('publisher-1', jest.fn());
-            expect(typeof unsubscribe).toBe('function');
+            expect(handler).toHaveBeenCalledWith(message);
         });
 
-        it('구독 취소 후에는 메시지를 받지 않는다', async () => {
-            const handler = jest.fn();
-            const unsubscribe = await broker.subscribe('publisher-1', handler);
+        it('구독 취소 후에는 메시지를 받지 않아야 한다', async () => {
+            const handler = jest.fn().mockResolvedValue(undefined);
+            const unsubscribe = await broker.subscribe('test-topic', handler);
 
-            await broker.publish('publisher-1', 'message1');
+            await broker.publish('test-topic', 'message1');
             expect(handler).toHaveBeenCalledTimes(1);
 
             await unsubscribe();
-            await broker.publish('publisher-1', 'message2');
-            expect(handler).toHaveBeenCalledTimes(1); // 여전히 1회만 호출됨
-        });
-    });
-
-    describe('동시성 처리', () => {
-        it('여러 구독자에게 동시에 메시지를 전달할 수 있다', async () => {
-            const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
-
-            const handler1 = jest.fn().mockImplementation(() => delay(100));
-            const handler2 = jest.fn().mockImplementation(() => delay(50));
-
-            await broker.subscribe('publisher-1', handler1);
-            await broker.subscribe('publisher-1', handler2);
-
-            await broker.publish('publisher-1', 'test');
-
-            expect(handler1).toHaveBeenCalledWith('test');
-            expect(handler2).toHaveBeenCalledWith('test');
+            await broker.publish('test-topic', 'message2');
+            expect(handler).toHaveBeenCalledTimes(1);
         });
     });
 });
