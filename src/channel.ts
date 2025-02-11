@@ -1,8 +1,8 @@
-import { Subjection, Subscription } from './interfaces';
+import { Cleanable, Subjection, Subscription } from './interfaces';
 import { MessageHandler } from './types';
 import { randomUUID } from 'node:crypto';
 
-export class Channel<TMessage> implements Subjection<TMessage> {
+export class Channel<TMessage> implements Subjection<TMessage>, Cleanable {
     constructor(
         readonly topic: string,
         private subscriptions: Subscription<TMessage>[] = [],

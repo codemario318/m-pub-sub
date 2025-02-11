@@ -1,7 +1,4 @@
-import { ChannelRepository } from './interfaces';
-import { Channel } from './channel';
-
-import { ScheduledTask } from './interfaces/scheduled-task.interface';
+import { Cleanable, CleanableChannelRepository, ScheduledTask } from './interfaces';
 
 const CLEANUP_INTERVAL_DEFAULT = 3600;
 const STALE_THRESHOLD = 1800;
@@ -17,7 +14,7 @@ export class ChannelCleaner implements ScheduledTask {
     private readonly staleThreshold: number;
 
     constructor(
-        private readonly repository: ChannelRepository,
+        private readonly repository: CleanableChannelRepository,
         options?: ChannelCleanerOption,
     ) {
         this.interval = options?.interval ?? CLEANUP_INTERVAL_DEFAULT;
@@ -32,13 +29,13 @@ export class ChannelCleaner implements ScheduledTask {
         );
     }
 
-    private async cleanupChannel(channel: Channel<any>) {
+    private async cleanupChannel(channel: Cleanable) {
         if (this.isExpiredChannel(channel)) {
             await this.repository.deleteChannelByTopic(channel.topic);
         }
     }
 
-    private isExpiredChannel(channel: Channel<any>) {
+    private isExpiredChannel(channel: Cleanable) {
         const threshold = Date.now() - this.staleThreshold;
         return (
             channel.subscriberLength === 0 &&
