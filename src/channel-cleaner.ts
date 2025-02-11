@@ -1,6 +1,8 @@
 import { ChannelRepository } from './interfaces';
 import { Channel } from './channel';
 
+import { ScheduledTask } from './interfaces/scheduled-task.interface';
+
 const CLEANUP_INTERVAL_DEFAULT = 3600;
 const STALE_THRESHOLD = 1800;
 
@@ -9,7 +11,8 @@ export interface ChannelCleanerOption {
     staleThreshold?: number;
 }
 
-export class ChannelCleaner {
+export class ChannelCleaner implements ScheduledTask {
+    readonly name: string =  'Cleaner';
     readonly interval: number;
     private readonly staleThreshold: number;
 

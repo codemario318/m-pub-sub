@@ -1,8 +1,4 @@
-export interface ScheduledTask {
-    readonly name: string;
-    readonly interval: number;
-    execute(): Promise<void>;
-}
+import { ScheduledTask } from './interfaces';
 
 export class Scheduler {
     private readonly timers: Map<string, NodeJS.Timeout> = new Map();
