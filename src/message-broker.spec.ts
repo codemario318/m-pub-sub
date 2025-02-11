@@ -6,7 +6,7 @@ import { ScheduledTask } from './interfaces';
 
 describe('MessageBroker', () => {
     let broker: MessageBroker<string>;
-    let repository: jest.Mocked<ChannelRepository>;
+    let repository: jest.Mocked<ChannelRepository<string>>;
     let scheduler: jest.Mocked<Scheduler>;
     let mockTask: jest.Mocked<ScheduledTask>;
     let testChannel: Channel<string>;
@@ -102,8 +102,8 @@ describe('MessageBroker', () => {
         });
 
         it('다른 토픽의 구독자는 메시지를 받지 않는다', async () => {
-            const topic1Channel = new Channel('topic1');
-            const topic2Channel = new Channel('topic2');
+            const topic1Channel: Channel<string> = new Channel('topic1');
+            const topic2Channel: Channel<string> = new Channel('topic2');
             repository.findChannelByTopic.mockImplementation(async (topic) => {
                 if (topic === 'topic1') return topic1Channel;
                 if (topic === 'topic2') return topic2Channel;

@@ -1,7 +1,7 @@
 import { Channel } from '../channel';
 
-export interface ChannelRepository {
-    findChannelByTopic<TMessage>(topic: string): Promise<Channel<TMessage>>;
-    findAllChannels<TMessage>(): Promise<Channel<TMessage>[]>;
+export interface ChannelRepository<TMessage> {
+    findChannelByTopic(topic: string): Promise<Channel<TMessage>>;
+    findAllChannels(): Promise<Channel<TMessage>[]>;
     deleteChannelByTopic(topic: string): Promise<void>;
 }

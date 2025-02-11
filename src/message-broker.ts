@@ -7,7 +7,7 @@ import { ScheduledTask } from './interfaces';
 
 export class MessageBroker<TMessage> {
     constructor(
-        private readonly repository: ChannelRepository = new MemoryChannelRepository(),
+        private readonly repository: ChannelRepository<TMessage> = new MemoryChannelRepository(),
         private readonly scheduler: Scheduler = new Scheduler(),
         private readonly tasks: ScheduledTask[] = [
             new ChannelCleaner(repository),

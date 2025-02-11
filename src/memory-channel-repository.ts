@@ -1,7 +1,9 @@
 import { ChannelRepository } from './interfaces';
 import { Channel } from './channel';
 
-export class MemoryChannelRepository<TMessage> implements ChannelRepository {
+export class MemoryChannelRepository<TMessage>
+    implements ChannelRepository<TMessage>
+{
     constructor(
         private readonly channels: Map<string, Channel<TMessage>> = new Map(),
     ) {}
