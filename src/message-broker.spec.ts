@@ -2,7 +2,7 @@ import { MessageBroker } from './message-broker';
 import { ChannelRepository } from './interfaces';
 import { Scheduler } from './scheduler';
 import { Channel } from './channel';
-import { ScheduledTask } from './interfaces/scheduled-task.interface';
+import { ScheduledTask } from './interfaces';
 
 describe('MessageBroker', () => {
     let broker: MessageBroker<string>;
@@ -17,7 +17,7 @@ describe('MessageBroker', () => {
         mockTask = {
             name: 'MockTask',
             interval: 100,
-            execute: jest.fn().mockResolvedValue(undefined)
+            execute: jest.fn().mockResolvedValue(undefined),
         } as jest.Mocked<ScheduledTask>;
 
         testChannel = new Channel('test-topic');
@@ -55,10 +55,13 @@ describe('MessageBroker', () => {
             const mockTask2 = {
                 name: 'MockTask2',
                 interval: 200,
-                execute: jest.fn()
+                execute: jest.fn(),
             } as jest.Mocked<ScheduledTask>;
 
-            broker = new MessageBroker(repository, scheduler, [mockTask, mockTask2]);
+            broker = new MessageBroker(repository, scheduler, [
+                mockTask,
+                mockTask2,
+            ]);
 
             expect(scheduler.registerTask).toHaveBeenCalledWith(mockTask);
             expect(scheduler.registerTask).toHaveBeenCalledWith(mockTask2);
@@ -101,12 +104,11 @@ describe('MessageBroker', () => {
         it('다른 토픽의 구독자는 메시지를 받지 않는다', async () => {
             const topic1Channel = new Channel('topic1');
             const topic2Channel = new Channel('topic2');
-            repository.findChannelByTopic
-                .mockImplementation(async (topic) => {
-                    if (topic === 'topic1') return topic1Channel;
-                    if (topic === 'topic2') return topic2Channel;
-                    throw new Error('Unknown topic');
-                });
+            repository.findChannelByTopic.mockImplementation(async (topic) => {
+                if (topic === 'topic1') return topic1Channel;
+                if (topic === 'topic2') return topic2Channel;
+                throw new Error('Unknown topic');
+            });
 
             const handler1 = jest.fn().mockResolvedValue(undefined);
             const handler2 = jest.fn().mockResolvedValue(undefined);
@@ -164,7 +166,9 @@ describe('MessageBroker', () => {
         });
 
         it('구독자의 에러가 다른 구독자에게 영향을 주지 않는다', async () => {
-            const errorHandler = jest.fn().mockRejectedValue(new Error('에러 발생'));
+            const errorHandler = jest
+                .fn()
+                .mockRejectedValue(new Error('에러 발생'));
             const successHandler = jest.fn().mockResolvedValue(undefined);
             const message = 'test message';
 
@@ -178,11 +182,13 @@ describe('MessageBroker', () => {
         });
 
         it('채널을 찾을 수 없을 때 에러가 발생한다', async () => {
-            repository.findChannelByTopic.mockRejectedValue(new Error('Channel not found'));
+            repository.findChannelByTopic.mockRejectedValue(
+                new Error('Channel not found'),
+            );
 
-            await expect(broker.publish('non-existent', 'message'))
-                .rejects
-                .toThrow('Channel not found');
+            await expect(
+                broker.publish('non-existent', 'message'),
+            ).rejects.toThrow('Channel not found');
         });
     });
 });

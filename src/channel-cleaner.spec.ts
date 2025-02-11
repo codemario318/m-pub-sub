@@ -39,7 +39,9 @@ describe('ChannelCleaner', () => {
 
     describe('execute', () => {
         it('저장소 조회 실패시 적절히 에러를 처리해야 한다', async () => {
-            repository.findAllChannels.mockRejectedValue(new Error('Repository error'));
+            repository.findAllChannels.mockRejectedValue(
+                new Error('Repository error'),
+            );
 
             await expect(cleaner.execute()).rejects.toThrow();
         });
@@ -54,7 +56,9 @@ describe('ChannelCleaner', () => {
 
             await cleaner.execute();
 
-            expect(repository.deleteChannelByTopic).toHaveBeenCalledWith('stale-topic');
+            expect(repository.deleteChannelByTopic).toHaveBeenCalledWith(
+                'stale-topic',
+            );
         });
 
         it('구독자가 있는 채널은 오래되었더라도 삭제하지 않아야 한다', async () => {
@@ -106,7 +110,9 @@ describe('ChannelCleaner', () => {
             await cleaner.execute();
 
             expect(repository.deleteChannelByTopic).toHaveBeenCalledTimes(1);
-            expect(repository.deleteChannelByTopic).toHaveBeenCalledWith('stale-topic');
+            expect(repository.deleteChannelByTopic).toHaveBeenCalledWith(
+                'stale-topic',
+            );
         });
 
         it('일부 채널 삭제 실패시에도 다른 채널 처리를 계속해야 한다', async () => {
@@ -129,8 +135,14 @@ describe('ChannelCleaner', () => {
             await cleaner.execute();
 
             expect(repository.deleteChannelByTopic).toHaveBeenCalledTimes(2);
-            expect(repository.deleteChannelByTopic).toHaveBeenNthCalledWith(1, 'failed-topic');
-            expect(repository.deleteChannelByTopic).toHaveBeenNthCalledWith(2, 'success-topic');
+            expect(repository.deleteChannelByTopic).toHaveBeenNthCalledWith(
+                1,
+                'failed-topic',
+            );
+            expect(repository.deleteChannelByTopic).toHaveBeenNthCalledWith(
+                2,
+                'success-topic',
+            );
         });
     });
 });

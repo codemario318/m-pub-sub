@@ -9,13 +9,15 @@ export class MessageBroker<TMessage> {
     constructor(
         private readonly repository: ChannelRepository = new MemoryChannelRepository(),
         private readonly scheduler: Scheduler = new Scheduler(),
-        private readonly tasks: ScheduledTask[] = [new ChannelCleaner(repository)],
+        private readonly tasks: ScheduledTask[] = [
+            new ChannelCleaner(repository),
+        ],
     ) {
         this.initializeScheduler();
     }
 
     private initializeScheduler() {
-        this.tasks.forEach(task => this.scheduler.registerTask(task));
+        this.tasks.forEach((task) => this.scheduler.registerTask(task));
         this.scheduler.startAll();
     }
 

@@ -7,7 +7,7 @@ export class Scheduler {
     constructor(private tasks: ScheduledTask[] = []) {}
 
     public registerTask(task: ScheduledTask) {
-        if (this.tasks.find(t => t.name === task.name)) {
+        if (this.tasks.find((t) => t.name === task.name)) {
             throw new Error(`Task with name ${task.name} already exists`);
         }
         this.tasks.push(task);
@@ -15,11 +15,11 @@ export class Scheduler {
 
     public unregisterTask(taskName: string) {
         this.stop(taskName);
-        this.tasks = this.tasks.filter(task => task.name !== taskName);
+        this.tasks = this.tasks.filter((task) => task.name !== taskName);
     }
 
     public start(taskName: string) {
-        const task = this.tasks.find(task => task.name === taskName);
+        const task = this.tasks.find((task) => task.name === taskName);
 
         if (!task) {
             throw new Error(`Task ${taskName} not found`);
@@ -35,7 +35,7 @@ export class Scheduler {
     }
 
     public startAll() {
-        this.tasks.forEach(task => this.start(task.name));
+        this.tasks.forEach((task) => this.start(task.name));
     }
 
     public stop(taskName: string) {
@@ -47,7 +47,7 @@ export class Scheduler {
     }
 
     public stopAll() {
-        this.tasks.forEach(task => this.stop(task.name));
+        this.tasks.forEach((task) => this.stop(task.name));
     }
 
     private async executeTask(task: ScheduledTask) {
