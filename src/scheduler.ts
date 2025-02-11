@@ -4,22 +4,22 @@ export class Scheduler {
     private readonly timers: Map<string, NodeJS.Timeout> = new Map();
     private readonly runningTasks: Set<string> = new Set();
 
-    constructor(private readonly tasks: Map<string, ScheduledTask>) {}
+    constructor(private tasks: ScheduledTask[] = []) {}
 
     public registerTask(task: ScheduledTask) {
-        if (this.tasks.has(task.name)) {
+        if (this.tasks.find(t => t.name === task.name)) {
             throw new Error(`Task with name ${task.name} already exists`);
         }
-        this.tasks.set(task.name, task);
+        this.tasks.push(task);
     }
 
     public unregisterTask(taskName: string) {
         this.stop(taskName);
-        this.tasks.delete(taskName);
+        this.tasks = this.tasks.filter(task => task.name !== taskName);
     }
 
     public start(taskName: string) {
-        const task = this.tasks.get(taskName);
+        const task = this.tasks.find(task => task.name === taskName);
 
         if (!task) {
             throw new Error(`Task ${taskName} not found`);
@@ -35,9 +35,7 @@ export class Scheduler {
     }
 
     public startAll() {
-        for (const task of this.tasks.values()) {
-            this.start(task.name);
-        }
+        this.tasks.forEach(task => this.start(task.name));
     }
 
     public stop(taskName: string) {
@@ -49,9 +47,7 @@ export class Scheduler {
     }
 
     public stopAll() {
-        for (const taskName of this.timers.keys()) {
-            this.stop(taskName);
-        }
+        this.tasks.forEach(task => this.stop(task.name));
     }
 
     private async executeTask(task: ScheduledTask) {

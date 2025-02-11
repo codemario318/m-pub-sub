@@ -1,4 +1,5 @@
-import { ScheduledTask, Scheduler } from './scheduler';
+import { Scheduler } from './scheduler';
+import { ScheduledTask } from './interfaces/scheduled-task.interface';
 
 const createMockTask = (
     name: string,
@@ -13,12 +14,11 @@ describe('Scheduler 테스트', () => {
     let scheduler: Scheduler;
 
     beforeEach(() => {
-        scheduler = new Scheduler(new Map());
+        scheduler = new Scheduler();
         jest.useFakeTimers();
     });
 
     afterEach(() => {
-        scheduler.stopAll();
         jest.useRealTimers();
         jest.clearAllMocks();
     });
