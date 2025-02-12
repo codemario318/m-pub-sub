@@ -35,6 +35,8 @@ export class Channel<TMessage> implements Subjection<TMessage>, Cleanable {
     }
 
     private async unsubscribe(subscriptionId: string) {
+        this._lastUpdatedAt = new Date();
+
         this.subscriptions = this.subscriptions.filter(
             (subscription) => subscription.id !== subscriptionId,
         );
