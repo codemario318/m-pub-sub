@@ -1,37 +1,34 @@
-import { Broker } from './interfaces';
 import { MessageHandler } from './types';
-import { randomUUID } from 'node:crypto';
-import { Subscription } from './interfaces';
+import { ChannelCleaner } from './channel-cleaner';
+import { ChannelRepository } from './interfaces';
+import { Scheduler } from './scheduler';
+import { MemoryChannelRepository } from './memory-channel-repository';
+import { ScheduledTask } from './interfaces';
 
-export class MessageBroker<TMessage> implements Broker<TMessage> {
+export class MessageBroker<TMessage> {
     constructor(
-        private readonly channels: Map<string, Subscription<TMessage>[]> = new Map(),
-    ) {}
-
-    public async subscribe(channel: string, handler: MessageHandler<TMessage>) {
-        const subscriptions = this.getSubscriptions(channel)
-        const subscriptionId = randomUUID();
-
-        this.channels.set(channel, [...subscriptions, {id: subscriptionId, handler}]);
-
-        return () => this.unsubscribe(channel, subscriptionId);
+        private readonly repository: ChannelRepository<TMessage> = new MemoryChannelRepository(),
+        private readonly scheduler: Scheduler = new Scheduler(),
+        private readonly tasks: ScheduledTask[] = [
+            new ChannelCleaner(repository),
+        ],
+    ) {
+        this.initializeScheduler();
     }
 
-    public async publish(channel: string, message: TMessage) {
-        const subscriptions = this.getSubscriptions(channel);
-        await Promise.all(subscriptions.map((subscriber) => subscriber.handler(message)));
+    private initializeScheduler() {
+        this.tasks.forEach((task) => this.scheduler.registerTask(task));
+        this.scheduler.startAll();
     }
 
-    private getSubscriptions(channel: string) {
-        if (!this.channels.has(channel)) {
-            this.channels.set(channel, []);
-        }
-
-        return this.channels.get(channel)!;
+    public async subscribe(topic: string, handler: MessageHandler<TMessage>) {
+        const channel = await this.repository.findChannelByTopic(topic);
+        const subscribe = await channel.subscribe(handler);
+        return subscribe.unsubscribe;
     }
 
-    private async unsubscribe(channel: string, subscriptionId: string) {
-        const subscriptions = this.getSubscriptions(channel);
-        this.channels.set(channel, subscriptions.filter((subscription) => subscription.id !== subscriptionId));
+    public async publish(topic: string, message: TMessage) {
+        const channel = await this.repository.findChannelByTopic(topic);
+        return channel.publish(message);
     }
 }
