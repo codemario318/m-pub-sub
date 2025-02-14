@@ -14,8 +14,14 @@ export class Scheduler {
     }
 
     public unregisterTask(taskName: string) {
+        const index = this.tasks.findIndex((task) => task.name === taskName);
+
+        if (index === -1) {
+            throw new Error(`Task with name ${taskName} not found.`);
+        }
+
         this.stop(taskName);
-        this.tasks = this.tasks.filter((task) => task.name !== taskName);
+        this.tasks.splice(index, 1);
     }
 
     public start(taskName: string) {
