@@ -1,6 +1,6 @@
 {
   "name": "m-pub-sub",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Simple pub-sub",
   "main": "dist/index.js",
   "type": "module",
